@@ -1,0 +1,41 @@
+server:
+  port: 9191
+
+spring:
+  application:
+    name: API-GATEWAY
+  cloud:
+    gateway:
+      routes:
+        - id: gestion-paie-service
+          uri: lb://gestion-paie-service
+          predicates:
+            - Path=/gestion-paie/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: gestion-paie-service
+                fallbackuri: forward:/paieServiceFallBack
+        - id: gestion-virement
+          uri: lb://gestion-virement
+          predicates:
+            - Path=/gestion-virement/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: gestion-virement
+                fallbackuri: forward:/gestionVirementFallBack
+
+hystrix:
+  command:
+    fallbackcmd:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 4000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: hystrix.stream
